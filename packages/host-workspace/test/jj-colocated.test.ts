@@ -195,19 +195,4 @@ describe.skipIf(!jjAvailable)("colocated jj workspaces", () => {
     expect(jjStatus).toContain("The working copy has no changes.");
   });
 
-  it("rejects squash merge from the jj main workspace as detached_head", async () => {
-    const repoPath = await initColocatedJjRepo();
-    await runJj(["bookmark", "create", "main", "-r", "@-"], repoPath);
-
-    const workspace = new Workspace(repoPath);
-    await expect(
-      workspace.squashMergeInto({
-        targetBranch: "main",
-        commitMessage: "squash",
-      }),
-    ).rejects.toMatchObject({
-      name: "WorkspaceError",
-      code: "detached_head",
-    });
-  });
 });

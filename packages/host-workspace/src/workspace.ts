@@ -1029,6 +1029,7 @@ export class Workspace {
     });
   }
 
+
   private async buildDiffSummary(args: {
     target: WorkspaceDiffTarget;
     maxDiffBytes?: number;

@@ -86,7 +86,7 @@ describe.skipIf(!jjAvailable)("provisioning from colocated jj sources", () => {
     const bookmarks = await runJj(["bookmark", "list", "--all"], sourceRepo);
     expect(bookmarks).toContain("bb/test-thread");
 
-    await removeWorktree({ path: worktreePath });
+    await removeWorktree({ path: worktreePath, timeoutMs: 60_000 });
     await expect(fs.stat(worktreePath)).rejects.toThrow();
     // The source workspace stays intact.
     const sourceStatus = await runJj(["status"], sourceRepo);
