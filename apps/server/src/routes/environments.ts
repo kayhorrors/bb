@@ -653,6 +653,7 @@ export function registerEnvironmentRoutes(app: Hono, deps: AppDeps): void {
             commitSubject: result.commitSubject,
           });
         }
+
         case "pull_request_ready": {
           if (!environment.isGitRepo) {
             throw new ApiError(
