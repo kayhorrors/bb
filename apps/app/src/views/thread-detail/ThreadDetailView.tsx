@@ -2361,6 +2361,7 @@ function ThreadDetailViewInternal(props: ThreadRoutePathArgs) {
   const threadEnvironmentDisplay = environment
     ? formatEnvironmentDisplay({
         environment,
+        checkout: workspaceStatus?.checkout,
         host: environmentDisplayHostContext,
       })
     : undefined;

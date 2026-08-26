@@ -45,6 +45,52 @@ describe("formatEnvironmentDisplay", () => {
       });
     });
 
+    it("calls a jj managed checkout a workspace, not a worktree", () => {
+      const result = formatEnvironmentDisplay({
+        environment: makeDisplayEnvironment({
+          isWorktree: true,
+          workspaceProvisionType: "managed-worktree",
+        }),
+        checkout: {
+          kind: "detached",
+          headSha: "faecdf2aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          jj: { bookmark: null },
+        },
+        host: localHostContext,
+      });
+      expect(result.modeLabel).toBe("Workspace");
+      expect(result.compactModeLabel).toBe("Workspace");
+    });
+
+    it("keeps calling a git managed checkout a worktree", () => {
+      const result = formatEnvironmentDisplay({
+        environment: makeDisplayEnvironment({
+          isWorktree: true,
+          workspaceProvisionType: "managed-worktree",
+        }),
+        checkout: {
+          kind: "branch",
+          branchName: "bb/thread-1",
+          headSha: "faecdf2aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        },
+        host: localHostContext,
+      });
+      expect(result.modeLabel).toBe("Worktree");
+    });
+
+    it("says worktree when no checkout is in hand to tell jj apart", () => {
+      // The sidebar and provisioning transcripts only have the environment
+      // record, so they cannot know, and git's word is the safe default.
+      const result = formatEnvironmentDisplay({
+        environment: makeDisplayEnvironment({
+          isWorktree: true,
+          workspaceProvisionType: "managed-worktree",
+        }),
+        host: localHostContext,
+      });
+      expect(result.modeLabel).toBe("Worktree");
+    });
+
     it("returns a remote label for remote unmanaged workspace", () => {
       const result = formatEnvironmentDisplay({
         environment: makeDisplayEnvironment(),

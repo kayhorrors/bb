@@ -38,6 +38,7 @@ function renderEnvironmentRow(environment: Environment): string {
         <EnvironmentRow
           thread={makeThread({ environmentId: environment.id })}
           environment={environment}
+          environmentCheckout={null}
           environmentDisplayHost={localHost}
         />
       </MemoryRouter>
@@ -91,6 +92,7 @@ describe("EnvironmentRow", () => {
           <EnvironmentRow
             thread={makeThread()}
             environment={makeEnvironment()}
+            environmentCheckout={null}
             environmentDisplayHost={localHost}
           />
         </MemoryRouter>
