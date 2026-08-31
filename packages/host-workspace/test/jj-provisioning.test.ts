@@ -3,12 +3,25 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { runGit } from "../src/git.js";
 import { runJj } from "../src/jj.js";
 import { createWorktree, removeWorktree } from "../src/provisioning.js";
 import { provisionWorkspace } from "../src/provision.js";
 import { resolveAdditionalWorkspaceWriteRoots } from "../src/workspace-write-roots.js";
+
+const renameMock = vi.hoisted(() => vi.fn());
+
+vi.mock("node:fs/promises", async () => {
+  const actual = await vi.importActual<typeof import("node:fs/promises")>(
+    "node:fs/promises",
+  );
+  const realRename = actual.rename;
+  renameMock.mockImplementation((fromPath: string, toPath: string) =>
+    realRename(fromPath, toPath),
+  );
+  return { ...actual, rename: renameMock };
+});
 
 const execFileAsync = promisify(execFile);
 
@@ -249,6 +262,39 @@ describe.skipIf(!jjAvailable)("provisioning against a colocated jj source", () =
     await expect(fs.stat(path.join(targetPath, ".jj"))).rejects.toMatchObject({
       code: "ENOENT",
     });
+  });
+  it("copies the shadow registration when /tmp is a different filesystem", async () => {
+    const sourcePath = await initColocatedSource();
+    const parent = await makeTempDir("bb-jj-exdev-target-");
+    const targetPath = path.join(parent, "repo");
+
+    // The staged .git lives in os.tmpdir() but the workspace can be on another
+    // device (e.g. tmpfs /tmp), which makes rename(2) fail with EXDEV.
+    renameMock.mockRejectedValueOnce(
+      Object.assign(new Error("EXDEV: cross-device link not permitted"), {
+        code: "EXDEV",
+      }),
+    );
+
+    await expect(
+      createWorktree({
+        sourcePath,
+        targetPath,
+        branchName: "bb/thread-exdev",
+        baseBranch: "main",
+        timeoutMs: 60_000,
+        pruneEmptyParent: true,
+      }),
+    ).resolves.toMatchObject({ path: targetPath });
+
+    // The copied pointer still resolves through git.
+    const gitDir = await runGit(["rev-parse", "--git-dir"], {
+      cwd: targetPath,
+    });
+    expect(gitDir.stdout).toContain("/worktrees/");
+    expect(
+      (await runGit(["status", "--porcelain"], { cwd: targetPath })).stdout.trim(),
+    ).toBe("");
   });
 });
 

@@ -304,10 +304,20 @@ export async function attachShadowGitCheckout(
       ["worktree", "add", "--detach", "--no-checkout", stagingPath, parent],
       { cwd: sourcePath, ...gitOptions },
     );
-    await fs.rename(
-      path.join(stagingPath, ".git"),
-      path.join(workspacePath, ".git"),
-    );
+    const stagedGitDir = path.join(stagingPath, ".git");
+    const workspaceGitDir = path.join(workspacePath, ".git");
+    try {
+      await fs.rename(stagedGitDir, workspaceGitDir);
+    } catch (error) {
+      // /tmp can be a different filesystem from the workspace (e.g. tmpfs on
+      // Linux); rename(2) refuses to cross devices. The registration's .git
+      // is a small pointer file, so copying is safe; worktree repair below
+      // rewrites both ends of the pointer pair either way.
+      if ((error as NodeJS.ErrnoException).code !== "EXDEV") {
+        throw error;
+      }
+      await fs.copyFile(stagedGitDir, workspaceGitDir);
+    }
     await runGit(["worktree", "repair"], { cwd: workspacePath, ...gitOptions });
     // --no-checkout left the index empty; reset fills it from @- without
     // touching the files jj checked out.
