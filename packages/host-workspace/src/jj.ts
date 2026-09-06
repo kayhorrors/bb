@@ -189,7 +189,12 @@ export async function readJjWorkingCopyCommits(
       "-T",
       'commit_id ++ "\\n" ++ parents.map(|parent| parent.commit_id()).join(" ") ++ "\\n"',
     ],
-    { cwd, timeoutMs: options.timeoutMs, signal: options.signal },
+    {
+      cwd,
+      timeoutMs: options.timeoutMs,
+      signal: options.signal,
+      ...(options.shellPath !== undefined ? { shellPath: options.shellPath } : {}),
+    },
   );
   const [at = "", parents = ""] = result.stdout.split("\n");
   const parent = parents.trim().split(" ")[0] ?? "";

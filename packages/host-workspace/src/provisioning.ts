@@ -1075,7 +1075,9 @@ export async function removeWorktree(args: RemoveWorktreeArgs): Promise<void> {
   const jjLayout = await resolveJjWorkspaceLayout(workspacePath);
   const jjWorkspaceName =
     jjLayout?.kind === "secondary"
-      ? await readJjWorkspaceName(jjLayout.sourcePath, workspacePath)
+      ? await readJjWorkspaceName(jjLayout.sourcePath, workspacePath, {
+          ...(args.shellPath !== undefined ? { shellPath: args.shellPath } : {}),
+        })
       : null;
 
   const commonDirResult = await runGit(["rev-parse", "--git-common-dir"], {
@@ -1121,6 +1123,7 @@ export async function removeWorktree(args: RemoveWorktreeArgs): Promise<void> {
     // explicitly. Best-effort, for the same reason git metadata cleanup is.
     await runJj(["workspace", "forget", jjWorkspaceName], {
       cwd: jjLayout.sourcePath,
+      ...(args.shellPath !== undefined ? { shellPath: args.shellPath } : {}),
       allowFailure: true,
     });
   }

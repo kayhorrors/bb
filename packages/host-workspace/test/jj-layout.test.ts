@@ -6,6 +6,7 @@ import { promisify } from "node:util";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   detectColocatedJjSource,
+  readJjWorkingCopyCommits,
   resolveJjWorkspaceLayout,
   runJj,
 } from "../src/jj.js";
@@ -116,5 +117,37 @@ describe.skipIf(!jjAvailable)("jj workspace layout", () => {
       allowFailure: true,
     });
     expect(allowed.exitCode).not.toBe(0);
+  });
+});
+
+describe("jj login-shell PATH pass-through", () => {
+  it("resolves jj through the login-shell PATH instead of the daemon env", async () => {
+    const binDir = await makeTempDir("bb-jj-shell-path-bin-");
+    await fs.writeFile(
+      path.join(binDir, "jj"),
+      '#!/bin/sh\nprintf "e95c10f94db495b59aa63fb797be040236828836\\nparent-of-at\\n"\n',
+      { mode: 0o755 },
+    );
+    const workspacePath = await makeTempDir("bb-jj-shell-path-ws-");
+
+    const commits = await readJjWorkingCopyCommits(workspacePath, {
+      shellPath: binDir,
+    });
+    expect(commits).toEqual({
+      at: "e95c10f94db495b59aa63fb797be040236828836",
+      parent: "parent-of-at",
+    });
+  });
+
+  it("fails when the login-shell PATH has no jj, like a bare daemon env", async () => {
+    const emptyBinDir = await makeTempDir("bb-jj-shell-path-empty-");
+    const workspacePath = await makeTempDir("bb-jj-shell-path-ws2-");
+
+    await expect(
+      readJjWorkingCopyCommits(workspacePath, { shellPath: emptyBinDir }),
+    ).rejects.toMatchObject({
+      name: "WorkspaceError",
+      code: "jj_command_failed",
+    });
   });
 });
