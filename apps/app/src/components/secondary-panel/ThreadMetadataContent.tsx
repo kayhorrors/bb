@@ -12,6 +12,7 @@ import type { ThreadStorageBrowserController } from "./useThreadStorageBrowser";
 import { Link } from "react-router-dom";
 import type {
   Environment,
+  GitCheckoutRef,
   GitBranchRefClassification,
   Thread,
   ThreadListEntry,
@@ -80,6 +81,7 @@ import { PullRequestStateIcon } from "@/components/pull-request/PullRequestStatu
 import { GithubFaviconIcon } from "@/components/pull-request/GithubFaviconIcon";
 import { useUrlAnchorClickHandler } from "@/lib/url-open-routing";
 import { ParentThreadPicker } from "@/components/pickers/ParentThreadPicker";
+import { managedCheckoutNoun, resolveWorkspaceVcs } from "@bb/domain";
 
 interface ParentSelectorRowProps {
   thread: Thread;
@@ -230,12 +232,14 @@ function ForksRow({ thread, projectId }: ForksRowProps) {
 interface EnvironmentRowProps {
   thread: Thread;
   environment: Environment | null;
+  environmentCheckout: GitCheckoutRef | null;
   environmentDisplayHost: EnvironmentDisplayHostContext;
 }
 
 export function EnvironmentRow({
   thread,
   environment,
+  environmentCheckout,
   environmentDisplayHost,
 }: EnvironmentRowProps) {
   const createThreadInEnvironment = useCreateThreadInEnvironment({
@@ -258,6 +262,7 @@ export function EnvironmentRow({
   );
   const display = formatEnvironmentDisplay({
     environment,
+    checkout: environmentCheckout,
     host: environmentDisplayHost,
     providerLookup,
   });
@@ -274,6 +279,9 @@ export function EnvironmentRow({
     machineProviderId: null,
   };
   const showCreateThreadButton = isReusableEnvironment(environment);
+  const checkoutNoun = managedCheckoutNoun(
+    resolveWorkspaceVcs(environmentCheckout),
+  );
   return (
     <DetailRow
       label={
@@ -322,14 +330,14 @@ export function EnvironmentRow({
             <TooltipTrigger asChild>
               <button
                 type="button"
-                aria-label="New thread in this environment"
+                aria-label={`Create thread in ${checkoutNoun}`}
                 onClick={createThreadInEnvironment}
                 className="inline-flex shrink-0 items-center justify-center rounded-md p-0.5 text-muted-foreground transition-colors hover:bg-state-hover hover:text-foreground"
               >
                 <Icon name="MessageSquarePlus" className="size-4" />
               </button>
             </TooltipTrigger>
-            <TooltipContent>New thread in this environment</TooltipContent>
+            <TooltipContent>{`Create thread in ${checkoutNoun}`}</TooltipContent>
           </Tooltip>
         ) : null}
       </span>
@@ -1050,6 +1058,7 @@ export function ThreadMetadataContent(props: ThreadMetadataContentProps) {
       <EnvironmentRow
         thread={thread}
         environment={environment}
+        environmentCheckout={workspaceStatus?.checkout ?? null}
         environmentDisplayHost={environmentDisplayHost}
       />
       <EnvironmentProvisioningFailureRow

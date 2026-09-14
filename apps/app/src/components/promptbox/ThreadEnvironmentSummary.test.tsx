@@ -159,7 +159,7 @@ describe("ThreadEnvironmentSummary", () => {
     );
 
     const createThreadButton = screen.getByRole("button", {
-      name: "New thread in this environment",
+      name: "Create thread in worktree",
     });
     expect(createThreadButton.classList).toContain("text-subtle-foreground/75");
     expect(createThreadButton.classList).toContain(
@@ -171,7 +171,7 @@ describe("ThreadEnvironmentSummary", () => {
     focusWithKeyboard(createThreadButton);
 
     expect((await screen.findByRole("tooltip")).textContent).toBe(
-      "New thread in this environment",
+      "Create thread in worktree",
     );
   });
 });

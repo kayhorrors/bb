@@ -155,6 +155,7 @@ function renderEnvironmentRow(
           <EnvironmentRow
             thread={makeThread({ environmentId: environment.id })}
             environment={environment}
+            environmentCheckout={null}
             environmentDisplayHost={environmentDisplayHost}
           />
         </MemoryRouter>
@@ -249,7 +250,7 @@ describe("EnvironmentRow", () => {
 
   it("shows the create-thread action for a ready environment", () => {
     expect(renderEnvironmentRow(makeEnvironment())).toContain(
-      'aria-label="New thread in this environment"',
+      'aria-label="Create thread in worktree"',
     );
   });
 
@@ -261,6 +262,7 @@ describe("EnvironmentRow", () => {
             <EnvironmentRow
               thread={makeThread()}
               environment={makeEnvironment()}
+              environmentCheckout={null}
               environmentDisplayHost={localHost}
             />
           </MemoryRouter>
@@ -270,12 +272,12 @@ describe("EnvironmentRow", () => {
 
     focusWithKeyboard(
       screen.getByRole("button", {
-        name: "New thread in this environment",
+        name: "Create thread in worktree",
       }),
     );
 
     expect((await screen.findByRole("tooltip")).textContent).toBe(
-      "New thread in this environment",
+      "Create thread in worktree",
     );
   });
 
@@ -287,7 +289,7 @@ describe("EnvironmentRow", () => {
       }),
     );
 
-    expect(markup).not.toContain('aria-label="New thread in this environment"');
+    expect(markup).not.toContain('aria-label="Create thread in worktree"');
   });
 
   it("hides the create-thread action before an environment has a path", () => {
@@ -297,7 +299,7 @@ describe("EnvironmentRow", () => {
       }),
     );
 
-    expect(markup).not.toContain('aria-label="New thread in this environment"');
+    expect(markup).not.toContain('aria-label="Create thread in worktree"');
   });
 
   it("offers the create-thread action on a project's own checkout", () => {
@@ -305,7 +307,7 @@ describe("EnvironmentRow", () => {
       makeEnvironment({ environmentProviderId: null }),
     );
 
-    expect(markup).toContain('aria-label="New thread in this environment"');
+    expect(markup).toContain('aria-label="Create thread in worktree"');
   });
 
   it("shows a custom provider label with its machine", () => {

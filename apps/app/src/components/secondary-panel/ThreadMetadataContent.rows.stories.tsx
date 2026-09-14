@@ -190,6 +190,7 @@ export function Environment() {
           <EnvironmentRow
             thread={makeThread()}
             environment={makeEnvironment()}
+            environmentCheckout={null}
             environmentDisplayHost={localEnvironmentDisplayHost}
           />
         </RowStage>
@@ -199,7 +200,10 @@ export function Environment() {
           <EnvironmentRow
             thread={makeThread()}
             environment={makeEnvironment({
+              isWorktree: false,
+              workspaceProvisionType: "unmanaged",
             })}
+            environmentCheckout={null}
             environmentDisplayHost={localEnvironmentDisplayHost}
           />
         </RowStage>
@@ -209,7 +213,10 @@ export function Environment() {
           <EnvironmentRow
             thread={makeThread()}
             environment={makeEnvironment({
+              isWorktree: false,
+              workspaceProvisionType: "unmanaged",
             })}
+            environmentCheckout={null}
             environmentDisplayHost={remoteEnvironmentDisplayHost}
           />
         </RowStage>
@@ -221,6 +228,7 @@ export function Environment() {
             environment={makeEnvironment({
               status: "provisioning",
             })}
+            environmentCheckout={null}
             environmentDisplayHost={localEnvironmentDisplayHost}
           />
         </RowStage>
@@ -306,6 +314,40 @@ export function Branch() {
               checkout: {
                 kind: "detached",
                 headSha: "abcdef1234567890",
+              },
+              branch: {
+                currentBranch: null,
+                defaultBranch: "main",
+              },
+            })}
+          />
+        </RowStage>
+      </StoryRow>
+      <StoryRow label="jj bookmark checkout">
+        <RowStage>
+          <BranchRow
+            workspaceStatus={makeWorkspaceStatus({
+              checkout: {
+                kind: "detached",
+                headSha: "abcdef1234567890",
+                jj: { bookmark: "feature" },
+              },
+              branch: {
+                currentBranch: null,
+                defaultBranch: "main",
+              },
+            })}
+          />
+        </RowStage>
+      </StoryRow>
+      <StoryRow label="jj checkout without a bookmark">
+        <RowStage>
+          <BranchRow
+            workspaceStatus={makeWorkspaceStatus({
+              checkout: {
+                kind: "detached",
+                headSha: "abcdef1234567890",
+                jj: { bookmark: null },
               },
               branch: {
                 currentBranch: null,

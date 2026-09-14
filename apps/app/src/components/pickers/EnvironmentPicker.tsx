@@ -1,9 +1,12 @@
 import { EnvironmentProviderIcon } from "@/components/plugin/EnvironmentProviderIcon";
 import { useMemo } from "react";
-import type { Host, ProjectSource } from "@bb/domain";
+import type { Host, ProjectSource, WorkspaceVcs } from "@bb/domain";
 import type { SystemEnvironmentProvider } from "@bb/server-contract";
 import { Icon, type IconName } from "@bb/shared-ui/icon";
-import { findLocalPathProjectSourceForHost } from "@bb/domain";
+import {
+  findLocalPathProjectSourceForHost,
+  managedCheckoutNoun,
+} from "@bb/domain";
 import { pluginIconName } from "@/components/plugin/PluginIcon";
 import { Button } from "@bb/shared-ui/button";
 import { Skeleton } from "@bb/shared-ui/skeleton";
@@ -60,6 +63,9 @@ export interface EnvironmentPickerUIProps {
   sources: readonly ProjectSource[];
   host: Host | null;
   isLocal: boolean;
+  reuseDisabled?: boolean;
+  worktreeDisabledReason?: string | null;
+  vcs?: WorkspaceVcs | null;
   muted?: boolean;
   disabled?: boolean;
   isLoading?: boolean;
@@ -159,6 +165,7 @@ export function EnvironmentPickerUI({
   sources,
   host,
   isLocal,
+  vcs,
   muted,
   disabled = false,
   isLoading = false,
@@ -205,6 +212,7 @@ export function EnvironmentPickerUI({
     : !hostConnected
       ? "Host is offline"
       : null;
+  const checkoutNoun = managedCheckoutNoun(vcs);
   const parsed = useMemo(() => parseEnvironmentValue(value), [value]);
 
   const selectedMachineName = useMemo(() => {
@@ -259,7 +267,7 @@ export function EnvironmentPickerUI({
     }
     if (parsed?.type === "reuse") {
       return {
-        modeLabel: "Reuse",
+        modeLabel: `Reuse ${checkoutNoun}`,
         compactModeLabel: "Reuse",
         icon: REUSE_ENVIRONMENT_ICON_NAME,
       };
@@ -270,6 +278,7 @@ export function EnvironmentPickerUI({
       icon: "Laptop" as const,
     };
   }, [
+    checkoutNoun,
     parsed,
     hostUnavailableReason,
     availableHost,

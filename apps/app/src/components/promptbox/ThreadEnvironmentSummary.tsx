@@ -50,6 +50,8 @@ export const ThreadEnvironmentSummary = memo(function ThreadEnvironmentSummary({
   }
 
   const checkoutCopyValue = environmentCheckout?.copyValue ?? null;
+  const checkoutNoun =
+    environmentCheckout?.rowLabel === "Bookmark" ? "workspace" : "worktree";
   return (
     <div className="flex min-w-0 max-w-full items-center gap-2 pr-1.5">
       {projectName ? (
@@ -141,7 +143,7 @@ export const ThreadEnvironmentSummary = memo(function ThreadEnvironmentSummary({
           <TooltipTrigger asChild>
             <button
               type="button"
-              aria-label="New thread in this environment"
+              aria-label={`Create thread in ${checkoutNoun}`}
               onClick={onCreateNewThreadInEnvironment}
               className={cn(
                 "-ml-1 inline-flex cursor-pointer shrink-0 items-center justify-center rounded-md px-1 py-0.5 transition-colors hover:bg-state-hover",
@@ -151,7 +153,7 @@ export const ThreadEnvironmentSummary = memo(function ThreadEnvironmentSummary({
               <Icon name="MessageSquarePlus" className="size-4" />
             </button>
           </TooltipTrigger>
-          <TooltipContent>New thread in this environment</TooltipContent>
+          <TooltipContent>{`Create thread in ${checkoutNoun}`}</TooltipContent>
         </Tooltip>
       ) : null}
     </div>

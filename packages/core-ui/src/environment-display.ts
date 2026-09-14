@@ -1,4 +1,6 @@
 import type { Environment } from "@bb/domain";
+import type { GitCheckoutRef } from "@bb/domain";
+import { managedCheckoutNoun, resolveWorkspaceVcs } from "@bb/domain";
 
 type EnvironmentDisplayHostLocality = "local" | "remote";
 
@@ -30,6 +32,13 @@ export interface EnvironmentDisplayNameSource {
 }
 
 export interface EnvironmentDisplayInfo {
+  /**
+   * Human-readable environment label: a custom environment name when present,
+   * "Provisioning" while the environment is still being set up, "Destroying"
+   * while it is torn down, "Destroyed" once it is gone, otherwise "Working
+   * locally", "Working remotely", or the checkout's own name — "Worktree" for
+   * git, "Workspace" for jj.
+   */
   modeLabel: string;
   compactModeLabel: string;
   typeLabel: string;
@@ -40,6 +49,11 @@ export interface EnvironmentDisplayInfo {
 
 interface FormatEnvironmentDisplayArgs {
   environment: Environment;
+  /**
+   * Live checkout for this environment, when the caller has it. Used only to
+   * recognize a jj workspace whose environment row predates bb recording it.
+   */
+  checkout?: GitCheckoutRef | null;
   host: EnvironmentDisplayHostContext;
   providerLookup: EnvironmentDisplayProviderLookup;
 }
@@ -84,6 +98,7 @@ export function resolveEnvironmentDisplayName(
 
 export function formatEnvironmentDisplay({
   environment,
+  checkout,
   host,
   providerLookup,
 }: FormatEnvironmentDisplayArgs): EnvironmentDisplayInfo {
@@ -99,6 +114,12 @@ export function formatEnvironmentDisplay({
       : lifecycle === "provisioning"
         ? "Provisioning"
         : null;
+  const managedCheckoutLabel =
+    environment.workspaceProvisionType === "managed-worktree"
+      ? managedCheckoutNoun(resolveWorkspaceVcs(checkout), {
+          capitalized: true,
+        })
+      : null;
   const providerLabel = resolveEnvironmentProviderLabel(
     environment.environmentProviderId,
     providerLookup,
@@ -110,8 +131,13 @@ export function formatEnvironmentDisplay({
   const namedCompactLabel = providerLabel ?? localityLabel;
 
   return {
-    modeLabel: environment.name ?? lifecycleLabel ?? namedLabel,
-    compactModeLabel: environment.name ?? lifecycleLabel ?? namedCompactLabel,
+    modeLabel:
+      environment.name ?? lifecycleLabel ?? managedCheckoutLabel ?? namedLabel,
+    compactModeLabel:
+      environment.name ??
+      lifecycleLabel ??
+      managedCheckoutLabel ??
+      namedCompactLabel,
     typeLabel:
       providerLabel === null
         ? localityLabel

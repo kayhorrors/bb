@@ -67,6 +67,7 @@ import { useProjectDefaultExecutionOptions } from "@/hooks/queries/project-defau
 import {
   stripProjectThreads,
   useProjectPromptHistory,
+  useProjectSourceBranches,
   type SidebarProject,
 } from "@/hooks/queries/project-queries";
 import { useSidebarNavigation } from "@/hooks/queries/sidebar-navigation-query";
@@ -97,6 +98,7 @@ import {
   isProjectlessProjectId,
 } from "@/lib/route-paths";
 import { sdk } from "@/lib/sdk";
+import type { WorkspaceVcs } from "@bb/domain";
 import {
   buildReuseThreadOptions,
   resolveRootComposeEffectiveEnvironmentValue,
@@ -998,6 +1000,7 @@ export function NewThreadComposer({
     return ids;
   }, [environmentProviderInputsSlots, environmentProviders]);
   const environmentProviderInputsRegistration = useMemo(() => {
+
     if (
       inputEnvironmentProvider === undefined ||
       inputEnvironmentProvider.inputs === null
@@ -1252,6 +1255,19 @@ export function NewThreadComposer({
       : null;
   const projectHostId =
     reuseEnvironmentId !== null ? null : (providerHostId ?? primaryHostId);
+  const branchesQuery = useProjectSourceBranches(
+    projectId,
+    projectHostId,
+    { enabled: projectHostId !== null && !isProjectless },
+  );
+  const projectSourceCheckout = branchesQuery.data?.checkout;
+  const projectSourceVcs: WorkspaceVcs | null =
+    projectSourceCheckout?.kind === "detached" && projectSourceCheckout.jj
+      ? "jj"
+      : projectSourceCheckout
+        ? "git"
+        : null;
+
   const panelThreadId = resolvePanelThreadId(
     reuseEnvironmentId,
     reuseThreadOptions,
@@ -1590,6 +1606,8 @@ export function NewThreadComposer({
             environment: {
               value: effectiveEnvironmentValue,
               sources: projectSources,
+               reuseDisabled: reuseThreadOptions.length === 0,
+               vcs: projectSourceVcs,
               disabled: locks.environment,
               isLoading: environmentProviders === undefined,
               providers: environmentProviders ?? [],
@@ -1768,6 +1786,7 @@ export function NewThreadComposer({
       inputsControlProviderIds,
       providerHostId,
       textEffects,
+      projectSourceVcs,
       serviceTierFastLabel,
     ],
   );

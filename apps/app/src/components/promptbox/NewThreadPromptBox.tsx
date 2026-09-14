@@ -8,7 +8,12 @@ import {
   type ReactNode,
   type RefObject,
 } from "react";
-import type { Host, ProjectSource, PromptTextMention } from "@bb/domain";
+import type {
+  Host,
+  ProjectSource,
+  PromptTextMention,
+  WorkspaceVcs,
+} from "@bb/domain";
 import type {
   SystemEnvironmentProvider,
   SystemMachineProvider,
@@ -77,6 +82,9 @@ export interface NewThreadEnvironmentConfig {
   isLocal: EnvironmentPickerUIProps["isLocal"];
   machines?: EnvironmentPickerMachines | null;
   onRequestMachineSetup?: (host: Host) => void;
+  reuseDisabled?: boolean;
+  worktreeDisabledReason?: string | null;
+  vcs?: WorkspaceVcs | null;
   disabled?: boolean;
   isLoading?: boolean;
   providers?: readonly SystemEnvironmentProvider[];
@@ -420,9 +428,10 @@ export function EnvironmentSlot({
         host={environment.host}
         isLocal={environment.isLocal}
         machines={environment.machines}
-        {...(!projectless && environment.onRequestMachineSetup
-          ? { onRequestMachineSetup: environment.onRequestMachineSetup }
-          : {})}
+        onRequestMachineSetup={environment.onRequestMachineSetup}
+        reuseDisabled={environment.reuseDisabled}
+        worktreeDisabledReason={environment.worktreeDisabledReason}
+        vcs={environment.vcs}
         disabled={environment.disabled}
         isLoading={environment.isLoading}
         providers={providers}
